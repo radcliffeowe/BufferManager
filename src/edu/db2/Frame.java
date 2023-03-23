@@ -33,7 +33,7 @@ public class Frame {
         this.content = content;
     }
 
-    public Boolean getDirty() {
+    public boolean getDirty() {
         return dirty;
     }
 
@@ -41,7 +41,7 @@ public class Frame {
         this.dirty = dirty;
     }
 
-    public Boolean getPinned() {
+    public boolean getPinned() {
         return pinned;
     }
 
