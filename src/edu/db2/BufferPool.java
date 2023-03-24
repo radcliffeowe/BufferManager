@@ -80,6 +80,23 @@ public class BufferPool {
         System.out.println("The block was "+ alreadyPinned + "already pinned\n");
     }
 
+    public void UNPIN(int blockId){
+        String alreadyUnpinned = "";
+        int alreadyInMemory = isInPool(blockId);
+        if(alreadyInMemory != -1){
+            if(buffers[alreadyInMemory].getPinned()){
+                buffers[alreadyInMemory].setPinned(false);
+                alreadyUnpinned = "not";
+            }
+        }
+        else{
+            System.out.println("The corresponding block " + blockId + " cannot be unpinned because it is not in memory\n");
+            return;
+        }
+        System.out.println("Frame number " + alreadyInMemory + " unpinned");
+        System.out.println("Pinned flag was " + alreadyUnpinned + " already false");
+    }
+
     /**
      * Search the buffer pool for the block containing the record.
      * @param blockId is the block containing the record

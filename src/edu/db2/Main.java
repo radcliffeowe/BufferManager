@@ -23,6 +23,7 @@ public class Main {
                     bufferPool.PIN(Integer.parseInt(cmdArgs[1]));
                     break;
                 case ("UNPIN"):
+                    bufferPool.UNPIN(Integer.parseInt(cmdArgs[1]));
                     break;
                 case ("EXIT"):
                     exit = true;
