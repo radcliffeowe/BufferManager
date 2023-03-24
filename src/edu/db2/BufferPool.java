@@ -54,6 +54,36 @@ public class BufferPool {
         }
     }
 
+    public void SET(int recordNumber, String newContent){
+        String successfulWrite = "";
+        String alreadyInMemory = "";
+
+        Double blockFloor = Math.floor((recordNumber-1)/100);
+        int blockId = blockFloor.intValue() + 1;
+        int recordId = recordNumber%100;
+
+        int bufferNumber = isInPool(blockId);
+
+        if(bufferNumber == -1){
+            alreadyInMemory = "not";
+            bufferNumber = fetchBlock(blockId);
+        }
+        if(bufferNumber == -1){
+            System.out.println("The corresponding block# " + blockId + " cannot be accessed from disk because the memory buffers are full\n");
+            return;
+        }
+        else {
+            boolean recordUpdated = buffers[bufferNumber].updateRecord(recordId, newContent);
+            if (!recordUpdated) {
+                successfulWrite = "not";
+            }
+        }
+
+        System.out.println("The write was "+ successfulWrite + " successful");
+        System.out.println("The block was " + alreadyInMemory + " already in memory");
+        System.out.println("The block is now in frame " + (bufferNumber +1));
+    }
+
     public void PIN(int blockId){
         int alreadyInMemory = isInPool(blockId);
         String alreadyPinned = "";

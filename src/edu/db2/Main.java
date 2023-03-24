@@ -18,6 +18,11 @@ public class Main {
                     bufferPool.GET(Integer.parseInt(cmdArgs[1]));
                     break;
                 case ("SET"):
+                    String newContent = cmdArgs[2];
+                    for(int i = 3; i< cmdArgs.length;i++){
+                        newContent += " " + cmdArgs[i];
+                    }
+                    bufferPool.SET(Integer.parseInt(cmdArgs[1]), newContent);
                     break;
                 case ("PIN"):
                     bufferPool.PIN(Integer.parseInt(cmdArgs[1]));

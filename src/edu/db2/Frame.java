@@ -1,5 +1,7 @@
 package edu.db2;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class Frame {
@@ -29,9 +31,26 @@ public class Frame {
         return record;
     }
 
-    public boolean updateRecord(int recordNumber, byte[] newContent){
-        this.dirty = true;
-        return false;
+    public boolean updateRecord(int recordNumber, String newContent){
+        String currentRecord = new String(getRecord(recordNumber), StandardCharsets.US_ASCII);
+        if(!currentRecord.equals(newContent)) {
+            this.dirty = true;
+            byte[] newContentBytes = newContent.getBytes();
+            if(recordNumber == 0){
+                for(int i = 99*40; i<99*40+40; i++){
+                    content[i] = newContentBytes[i%40];
+                }
+            }
+            else {
+                for(int i = (recordNumber -1)*40; i<(recordNumber-1)*40+40; i++){
+                    content[i] = newContentBytes[i%40];
+                }
+            }
+        }
+        else{
+            return false;
+        }
+        return true;
     }
 
     public byte[] getContent() {
