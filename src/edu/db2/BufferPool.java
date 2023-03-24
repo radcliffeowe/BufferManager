@@ -49,6 +49,31 @@ public class BufferPool {
         System.out.println("Block stored in frame number " + bufferNumber);
     }
 
+    public void PIN(int blockId){
+        int alreadyInMemory = isInPool(blockId);
+        String alreadyPinned = "";
+        if(alreadyInMemory == -1){
+            int bufferNumber = fetchBlock(blockId);
+            if(bufferNumber >= 0){
+                buffers[bufferNumber].setPinned(true);
+                alreadyInMemory = bufferNumber;
+                alreadyPinned = "not ";
+            }
+            else{
+                System.out.println("The corresponding block BID cannot be pinned because the memory buffers are full\n");
+                return;
+            }
+        }
+        else{
+            if(!buffers[alreadyInMemory].getPinned()){
+                buffers[alreadyInMemory].setPinned(true);
+                alreadyPinned = "not ";
+            }
+        }
+        System.out.println("The block is pinned in frame " + alreadyInMemory);
+        System.out.println("The block was "+ alreadyPinned + "already pinned\n");
+    }
+
     /**
      * Search the buffer pool for the block containing the record.
      * @param blockId is the block containing the record
