@@ -38,7 +38,6 @@ public class BufferPool {
         int blockId = blockFloor.intValue() + 1;
         int recordId = recordNumber%100;
         String wasInMemory = "In memory, no I/O necessary";
-        byte[] blockContent = new byte[4000];
         int bufferNumber = isInPool(blockId);
         if(bufferNumber == -1){
             bufferNumber = fetchBlock(blockId);
@@ -51,7 +50,7 @@ public class BufferPool {
         else {
             System.out.println(new String(buffers[bufferNumber].getRecord(recordId), StandardCharsets.US_ASCII));
             System.out.println(wasInMemory);
-            System.out.println("Block stored in frame number " + bufferNumber);
+            System.out.println("Block stored in frame number " + (bufferNumber+1));
         }
     }
 
@@ -66,7 +65,7 @@ public class BufferPool {
                 alreadyPinned = "not ";
             }
             else{
-                System.out.println("The corresponding block BID cannot be pinned because the memory buffers are full\n");
+                System.out.println("The corresponding block " + blockId + " cannot be pinned because the memory buffers are full\n");
                 return;
             }
         }
@@ -76,7 +75,7 @@ public class BufferPool {
                 alreadyPinned = "not ";
             }
         }
-        System.out.println("The block is pinned in frame " + alreadyInMemory);
+        System.out.println("The block is pinned in frame " + (alreadyInMemory+1));
         System.out.println("The block was "+ alreadyPinned + "already pinned\n");
     }
 
@@ -93,7 +92,7 @@ public class BufferPool {
             System.out.println("The corresponding block " + blockId + " cannot be unpinned because it is not in memory\n");
             return;
         }
-        System.out.println("Frame number " + alreadyInMemory + " unpinned");
+        System.out.println("Frame number " + (alreadyInMemory+1) + " unpinned");
         System.out.println("Pinned flag was " + alreadyUnpinned + " already false");
     }
 
@@ -167,11 +166,9 @@ public class BufferPool {
      * @return the buffer number of the evictable frame. If no frames are evictable, returns -1.
      */
     public int evictFrame(){
-        int frameNum = lastEvictedFrameNumber + 1;
-        while(frameNum != lastEvictedFrameNumber){
-            if(frameNum == buffers.length){
-                frameNum = 0;
-            }
+        int frameNum = (lastEvictedFrameNumber + 1)% buffers.length;
+        int startingFrame = frameNum;
+        do{
             if(!buffers[frameNum].getPinned()){
                 if(buffers[frameNum].getDirty()){
                     //write back to disk
@@ -193,7 +190,7 @@ public class BufferPool {
                 lastEvictedFrameNumber = 0;
             }
             frameNum = (frameNum + 1)% buffers.length;
-        }
+        } while(frameNum != startingFrame);
         return -1;
     }
 
