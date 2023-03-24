@@ -42,15 +42,17 @@ public class BufferPool {
         int bufferNumber = isInPool(blockId);
         if(bufferNumber == -1){
             bufferNumber = fetchBlock(blockId);
-            if(bufferNumber == -1){
-                System.out.println("The corresponding block# " + blockId + " cannot be accessed from disk because the memory buffers are full");
-                return;
-            }
             wasInMemory = "Not in memory, I/O necessary";
         }
-        System.out.println(new String(buffers[bufferNumber].getRecord(recordId), StandardCharsets.US_ASCII));
-        System.out.println(wasInMemory);
-        System.out.println("Block stored in frame number " + bufferNumber + "\n");
+        if(bufferNumber == -1){
+            System.out.println("The corresponding block# " + blockId + " cannot be accessed from disk because the memory buffers are full\n");
+            return;
+        }
+        else {
+            System.out.println(new String(buffers[bufferNumber].getRecord(recordId), StandardCharsets.US_ASCII));
+            System.out.println(wasInMemory);
+            System.out.println("Block stored in frame number " + bufferNumber);
+        }
     }
 
     public void PIN(int blockId){
@@ -123,6 +125,7 @@ public class BufferPool {
         if(inFrame == -1){
             inFrame = evictFrame();
         }
+
         else{
             buffers[inFrame].setContent(blockContent);
             buffers[inFrame].setBlockId(blockId);
@@ -169,6 +172,9 @@ public class BufferPool {
                 }
                 lastEvictedFrameNumber = frameNum;
                 return frameNum;
+            }
+            if(lastEvictedFrameNumber == -1){
+                lastEvictedFrameNumber = 0;
             }
             frameNum = (frameNum + 1)% buffers.length;
         }
