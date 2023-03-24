@@ -231,4 +231,12 @@ public class BufferPool {
     public void setBuffers(Frame[] buffers) {
         this.buffers = buffers;
     }
+
+    public int getLastEvictedFrameNumber() {
+        return lastEvictedFrameNumber;
+    }
+
+    public void setLastEvictedFrameNumber(int lastEvictedFrameNumber) {
+        this.lastEvictedFrameNumber = lastEvictedFrameNumber;
+    }
 }
