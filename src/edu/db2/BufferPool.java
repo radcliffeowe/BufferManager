@@ -142,8 +142,7 @@ public class BufferPool {
         if(inFrame == -1){
             inFrame = evictFrame();
         }
-
-        else{
+        if(inFrame != -1){
             buffers[inFrame].setContent(blockContent);
             buffers[inFrame].setBlockId(blockId);
         }
