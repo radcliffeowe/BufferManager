@@ -42,11 +42,40 @@ public class BufferPool {
         int bufferNumber = isInPool(blockId);
         if(bufferNumber == -1){
             bufferNumber = fetchBlock(blockId);
+            if(bufferNumber == -1){
+                System.out.println("The corresponding block# " + blockId + " cannot be accessed from disk because the memory buffers are full");
+                return;
+            }
             wasInMemory = "Not in memory, I/O necessary";
         }
         System.out.println(new String(buffers[bufferNumber].getRecord(recordId), StandardCharsets.US_ASCII));
         System.out.println(wasInMemory);
-        System.out.println("Block stored in frame number " + bufferNumber);
+        System.out.println("Block stored in frame number " + bufferNumber + "\n");
+    }
+
+    public void PIN(int blockId){
+        int alreadyInMemory = isInPool(blockId);
+        String alreadyPinned = "";
+        if(alreadyInMemory == -1){
+            int bufferNumber = fetchBlock(blockId);
+            if(bufferNumber >= 0){
+                buffers[bufferNumber].setPinned(true);
+                alreadyInMemory = bufferNumber;
+                alreadyPinned = "not ";
+            }
+            else{
+                System.out.println("The corresponding block BID cannot be pinned because the memory buffers are full\n");
+                return;
+            }
+        }
+        else{
+            if(!buffers[alreadyInMemory].getPinned()){
+                buffers[alreadyInMemory].setPinned(true);
+                alreadyPinned = "not ";
+            }
+        }
+        System.out.println("The block is pinned in frame " + alreadyInMemory);
+        System.out.println("The block was "+ alreadyPinned + "already pinned\n");
     }
 
     /**
@@ -93,9 +122,6 @@ public class BufferPool {
         inFrame = findEmptyFrame();
         if(inFrame == -1){
             inFrame = evictFrame();
-        }
-        if(inFrame == -1){
-            System.out.println("The corresponding block# " + blockId + " cannot be accessed from disk because the memory buffers are full");
         }
         else{
             buffers[inFrame].setContent(blockContent);

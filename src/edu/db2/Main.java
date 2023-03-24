@@ -20,6 +20,7 @@ public class Main {
                 case ("SET"):
                     break;
                 case ("PIN"):
+                    bufferPool.PIN(Integer.parseInt(cmdArgs[1]));
                     break;
                 case ("UNPIN"):
                     break;
