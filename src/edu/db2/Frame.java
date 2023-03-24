@@ -1,5 +1,7 @@
 package edu.db2;
 
+import java.util.Arrays;
+
 public class Frame {
 
     private final int FRAME_SIZE = 4000;
@@ -10,14 +12,21 @@ public class Frame {
     private int blockId;
 
     public Frame(boolean dirty, boolean pinned, int blockId){
-        this.content = new byte[FRAME_SIZE];
+        this.content = new byte[4000];
         this.dirty = dirty;
         this.pinned = pinned;
         this.blockId = blockId;
     }
 
     public byte[] getRecord(int recordNumber){
-        return new byte[40];
+        byte[] record = new byte[40];
+        if(recordNumber == 0){
+            record = Arrays.copyOfRange(content, 99*40, 99*40+40);
+        }
+        else {
+            record = Arrays.copyOfRange(content, (recordNumber - 1) * 40, (recordNumber - 1) * 40 + 40);
+        }
+        return record;
     }
 
     public boolean updateRecord(int recordNumber, byte[] newContent){
