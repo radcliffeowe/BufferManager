@@ -2,8 +2,6 @@ package edu.db2;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
 
 public class BufferPool {
 
@@ -11,18 +9,18 @@ public class BufferPool {
     private int lastEvictedFrameNumber;
 
     public BufferPool(int poolSize){
-        this.buffers = new Frame[poolSize];
         this.initialize(poolSize);
-        this.lastEvictedFrameNumber = -1;
     }
 
     /**
-     * Initialize the buffer pool at startup, set the frames to empty
+     * Initialize the buffer pool at startup, set the frames to empty and the lastEvictedFrameNumber to -1.
      * @param size is the size of the buffer pool in number of Frames
      */
     public void initialize(int size){
+        this.lastEvictedFrameNumber = -1;
+        this.buffers = new Frame[size];
         for(int i = 0; i< size; i++){
-            buffers[i] = new Frame(false, false, -1);
+            buffers[i] = new Frame();
         }
     }
 
@@ -54,6 +52,14 @@ public class BufferPool {
         }
     }
 
+    /**
+     * Method to update the content of a record. Isolates the block id and the record id from the recordNumber.
+     * Checks if the block is in the buffer pool already. If not, it calls fetchBlock() to retrieve the block from the disk.
+     * If fetchBlock() returns -1, then there are no slots in the buffer pool and the method prints out the error message and returns.
+     * If fetchBlock() returns a buffer slot number, the method calls the updateRecord() method in the Frame class and updates the record to the new content.
+     * @param recordNumber is the record number, between 001 and 700.
+     * @param newContent is the new String of 40 bytes that the record will be updated to.
+     */
     public void SET(int recordNumber, String newContent){
         String successfulWrite = "";
         String alreadyInMemory = "";
@@ -70,6 +76,7 @@ public class BufferPool {
         }
         if(bufferNumber == -1){
             System.out.println("The corresponding block# " + blockId + " cannot be accessed from disk because the memory buffers are full\n");
+            System.out.println("The write was unsuccessful");
             return;
         }
         else {
@@ -84,6 +91,15 @@ public class BufferPool {
         System.out.println("The block is now in frame " + (bufferNumber +1));
     }
 
+    /**
+     * Method to pin a frame in the buffer pool. Checks if the block is in the buffer pool already.
+     * If it is not, then the method calls fetchBlock() to retrieve the block and return the frame number the block is in.
+     * If bufferNumber >= 0, then the block was successfully read into memory, and the method sets the pinned flag to true.
+     * If bufferNumber < 0, then the block was not read into memory, and the method prints the error message then returns.
+     * If the block was already in memory (alreadyInMemory >= 0), then the method checks if the frame is already pinned,
+     * and if it is not, then it pins the frame.
+     * @param blockId is the id of the block being pinned.
+     */
     public void PIN(int blockId){
         int alreadyInMemory = isInPool(blockId);
         String alreadyPinned = "";
@@ -109,6 +125,12 @@ public class BufferPool {
         System.out.println("The block was "+ alreadyPinned + "already pinned\n");
     }
 
+    /**
+     * Method to unpin a frame in the buffer pool. Checks if the block is in main memory already. If it is not, the block cannot be unpinned
+     * so the method prints the error messsage and returns. If the block is in main memory already, then the method checks if the block is pinned.
+     * If the block is pinned, then the method sets the pinned flag to false. If the block isn't pinned, the method ignores it, nothing needs to be done.
+     * @param blockId is the id of the block being unpinned
+     */
     public void UNPIN(int blockId){
         String alreadyUnpinned = "";
         int alreadyInMemory = isInPool(blockId);
@@ -140,12 +162,6 @@ public class BufferPool {
         return -1;
     }
 
-    public byte[] returnBlockContent(int blockId){
-        int bufferNumber = isInPool(blockId);
-        byte[] blockContent = buffers[bufferNumber].getContent();
-        return blockContent;
-    }
-
     /**
      * Fetches block from disk, and stores it in empty or evictable frame in buffer if available.
      * @param blockId is the id of the block being fetched
@@ -158,20 +174,21 @@ public class BufferPool {
         File block = new File("Project1/F" + blockId +".txt");
         int inFrame = -1;
 
-        try(FileInputStream stream = new FileInputStream(block)){
-            stream.read(blockContent);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            System.exit(1);
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
         inFrame = findEmptyFrame();
         if(inFrame == -1){
             inFrame = evictFrame();
         }
         if(inFrame != -1){
+            try(FileInputStream stream = new FileInputStream(block)){
+                stream.read(blockContent);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                System.exit(1);
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+
             buffers[inFrame].setContent(blockContent);
             buffers[inFrame].setBlockId(blockId);
         }
@@ -224,11 +241,35 @@ public class BufferPool {
         return -1;
     }
 
+    /**
+     * Getter for the buffer array
+     * @return the buffer array
+     */
     public Frame[] getBuffers() {
         return buffers;
     }
 
+    /**
+     * Setter for the buffer array
+     * @param buffers an array of Frames that are being set to the buffer pool
+     */
     public void setBuffers(Frame[] buffers) {
         this.buffers = buffers;
+    }
+
+    /**
+     * Getter for the last evicted frame number
+     * @return the frame number of the frame that was evicted last
+     */
+    public int getLastEvictedFrameNumber() {
+        return lastEvictedFrameNumber;
+    }
+
+    /**
+     * Setter for the last evicted frame number
+     * @param lastEvictedFrameNumber the frame number of the frame that was evicted last
+     */
+    public void setLastEvictedFrameNumber(int lastEvictedFrameNumber) {
+        this.lastEvictedFrameNumber = lastEvictedFrameNumber;
     }
 }
